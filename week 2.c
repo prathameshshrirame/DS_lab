@@ -1,93 +1,117 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include<stdio.h>
+#include<ctype.h>
+#include<string.h>
 
-struct stack
-{
-	int data;
-	struct stack *next;	
-};
+#define MAX 100
 
-struct stack *top = NULL;
+char stack[MAX];
+int top = -1;
 
-struct stack* push(struct stack *top, int val)
+//push function
+void push(char c)
 {
-    struct stack *ptr = malloc(sizeof(struct stack));
-    ptr->data = val;
-    ptr->next = top;
-    top = ptr;
-    return top;
-}
-struct stack *pop(struct stack *top)
-{
-	struct stack *ptr = top;
-	if (top == NULL)
+	if(top < MAX - 1)
 	{
-		printf("\n STACK UNDERFLOW");
+		stack[++top] = c;
 	}
-	else
-	{
-		top = top->next;
-		printf("\n THE Value being deleted is: ");
-		free(ptr);
-	}
-	return top;
 }
-int peek (struct stack *top)
+
+//pop function
+char pop()
 {
-	return (top == NULL) ? -1 : top->data;
-}
-struct stack* display (struct stack *top)
-{
-	struct stack *ptr = top;
-	if (top == NULL)
+	if (top >= 0)
 	{
-		printf("\nSTARCK IS EMPTY");
+		return stack[top--];
 	}
-	else
+	return -1;
+}
+
+//peek fn
+char peek()
+{
+	if (top >= 0)
 	{
-		while (ptr !=NULL)
+		return stack[top];
+	}
+	return -1;
+}
+
+//fn to define operator precedence
+int precedence(char op)
+{
+	switch (op)
+	{
+		case '*':
+		case '/':
+		case '%': return 2;
+		case '+':
+		case '-': return 1;
+		default: return 0;
+	}
+}
+
+//fn to check if character is operator
+int isOperator(char c)
+{
+	return (c == '+' || c == '-' || c == '*' || c == '/' || c == '%');
+}
+
+//infix to postfix conversion
+void infixTopostfix(char infix[], char postfix[])
+{
+	int i,k = 0;
+	char symbol;
+	
+	for (i = 0; i < strlen(infix); i++)
+	{
+		symbol = infix[i];
+		
+		//operand ? directly add to postfix
+		if (isalnum(symbol))
 		{
-		printf("\n%d",ptr->data);
-		ptr = ptr->next;
+			postfix[k++] = symbol;
+		}
+		//left parenthesis? push to stack
+		else if (symbol == '(')
+		{
+			push(symbol);
+		}
+		//right parenthesis ?pop until '('
+		else if (symbol == ')')
+		{
+			while (top != -1 && peek() != '(')
+			{
+				postfix[k++] = pop();
+			}
+			pop(); //remove '('
+		}
+		//operator
+		else if (isOperator(symbol))
+		{
+			while (top != -1 && precedence(peek()) >= precedence(symbol))
+			{
+				postfix[k++] = pop();
+			}
+			push(symbol);
 		}
 	}
-	return top;
+
+    while(top != -1)
+    {
+    	postfix[k++] = pop();
+    }
+    postfix[k] = '\0'; //null terminating string
 }
+
 int main()
 {
-	int val, option;
-	do
-	{
-		printf("\n*******MAIN MENU*******");
-		printf("\n1.PUSH");
-		printf("\n2.pop");
-		printf("\n3.Peek");
-		printf("\n4.Display");
-		printf("\n5.EXIT");
-		printf("\n Enter your option: ");
-		scanf("%d", &option);
-		
-		switch(option)
-		{
-			case 1:
-				printf("\n Enter the number to be pushed on stack: ");
-				scanf ("%d",&val);
-				top = push(top, val);
-				break;
-				case 2:
-					top = pop(top);
-					break;
-					case 3:
-						val = peek(top);
-						if (val != -1)
-						printf("\n The value at the top of stack is: %d",val);
-						else
-						printf("\n STACK IS EMPTY");
-						break;
-						case 4:
-							top = display(top);
-							break;
-		}
-	} while (option != 5);
+	char infix[MAX], postfix[MAX];
+	printf("Enter an infix expression: ");
+	scanf("%s", infix);
+	
+	infixTopostfix(infix, postfix);
+	
+	printf("Postfix expression: %s\n", postfix);
+	
 	return 0;
 }
