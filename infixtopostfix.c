@@ -101,7 +101,7 @@ void infixTopostfix(char infix[], char postfix[])
     	postfix[k++] = pop();
     }
     postfix[k] = '\0'; //null terminating string
-} // <-- missing brace fixed here
+}
 
 int main()
 {
@@ -115,4 +115,3 @@ int main()
 	
 	return 0;
 }
-
